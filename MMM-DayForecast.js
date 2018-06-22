@@ -25,21 +25,26 @@ Module.register('MMM-DayForecast', {
         rainOffset: 0,
         startOffset: 2000,
         reloadTime: 1800000, //1800000 = 1000 * 60 * 30 in ms (30min)
+        header: "Tagesübersicht", //if empty nothing is shown
 
         // design
         globalFontSize: 14,
         tickColor: "rgba(255, 255, 255, 1)",
         animationDuration: 0,
+
         tempLabelColor: "rgba(255, 255, 255, 1)",
         tempChartColor: "rgba(255, 255, 255, 1)",
         tempValueOffset: 1,
         tempValueUnit: "°C",
         tempLabel: "Temperatur",
+        tempShowValue: true,
+
         rainLabelColor: "rgba(255, 255, 255, 1)",
-        rainChartColor: "rgba(85, 85, 85, 1)",
+        rainChartColor: "rgba(53, 75, 91, 1)",
         rainValueOffset: 2,
         rainValueUnit: "mm",
         rainLabel: "Regen",
+        rainShowValue: false,
 
         // from basic MM currentweather
 		iconTable: {
@@ -222,10 +227,18 @@ Module.register('MMM-DayForecast', {
 
         var wrapper = document.createElement("div");
 
-        if (this.config.APIID === "") {
+        // is Key set?
+        if (self.config.APIID === "") {
 			wrapper.innerHTML = "Please set the correct openweather <i>appid</i> in the config for module: " + this.name + ".";
 			wrapper.className = "dimmed light small";
 			return wrapper;
+        }
+
+        // is header set?
+        if(self.config.header === "") {
+            var header = document.createElement("header");
+            header.innerHTML = self.config.header;
+            wrapper.appendChild(header);
         }
 
         var diagramWrapper = document.createElement("div");
@@ -271,6 +284,11 @@ Module.register('MMM-DayForecast', {
                         align: 'end',
                         color: self.config.tempLabelColor,
                         formatter: function(value, context) {
+
+                            if(!self.config.tempShowValue) {
+                                return " ";
+                            }
+
                             return value.toFixed(self.config.tempValueOffset).replace(".", ",") + self.config.tempValueUnit;
                         }
                     }
@@ -285,6 +303,15 @@ Module.register('MMM-DayForecast', {
                         align: 'end',
                         color: self.config.rainLabelColor,
                         formatter: function(value, context) {
+
+                            if(!self.config.rainShowValue) {
+                                return " ";
+                            }
+
+                            if(value.toFixed(self.config.rainValueOffset) == (0).toFixed(self.config.rainValueOffset)) {
+                                return " ";
+                            }
+
                             return value.toFixed(self.config.rainValueOffset).replace(".", ",") + self.config.rainValueUnit;
                         }
                     },
