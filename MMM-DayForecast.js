@@ -40,7 +40,7 @@ Module.register('MMM-DayForecast', {
         tempShowValue: true,
 
         rainLabelColor: "rgba(255, 255, 255, 1)",
-        rainChartColor: "rgba(53, 75, 91, 1)",
+        rainChartColor: "rgba(60, 60, 60, 1)",
         rainValueOffset: 2,
         rainValueUnit: "mm",
         rainLabel: "Regen",
@@ -235,7 +235,7 @@ Module.register('MMM-DayForecast', {
         }
 
         // is header set?
-        if(self.config.header === "") {
+        if(self.config.header !== "") {
             var header = document.createElement("header");
             header.innerHTML = self.config.header;
             wrapper.appendChild(header);
