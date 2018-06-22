@@ -1,6 +1,6 @@
 # MMM-DayForecast
 This module for the MagicMirror show a tempature curve and the rain for the next X timestamps. Works with chart js and openweathermaps<br><br>
-This ist the first alpha version of this modul. No reload integrated now and some not so shiny code.
+This ist the first alpha version of this modul. Need to rework the code.
 
 ## Installation
 1. Navigate into your MagicMirror's `modules` folder and execute `git clone https://github.com/freequenzart/MMM-DayForecast.git`.
