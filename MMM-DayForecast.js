@@ -21,7 +21,7 @@ Module.register('MMM-DayForecast', {
         lang: "de", 
 
         // setup
-        steps: 5,
+        steps: 4,
         rainOffset: 0,
         startOffset: 2000,
         reloadTime: 1800000, //1800000 = 1000 * 60 * 30 in ms (30min)
@@ -191,7 +191,7 @@ Module.register('MMM-DayForecast', {
             self.chart.update();
         }
         else {   
-            
+
             // chart init
             self.firstTimeCalled = true;
             var ctx = document.getElementById("weatherChart");
@@ -271,11 +271,11 @@ Module.register('MMM-DayForecast', {
                         align: 'end',
                         color: self.config.tempLabelColor,
                         formatter: function(value, context) {
-                            return value.toFixed(self.config.rainValueOffset).replace(".", ",") + self.config.tempValueUnit;
+                            return value.toFixed(self.config.tempValueOffset).replace(".", ",") + self.config.tempValueUnit;
                         }
                     }
                   }, {
-                    label: self.config.rainLa,
+                    label: self.config.rainLabel,
                     data: data.rain,
                     backgroundColor: self.config.rainChartColor,
                     borderWidth: 0,
@@ -283,12 +283,8 @@ Module.register('MMM-DayForecast', {
                         anchor: 'start',
                         offset: 2,
                         align: 'end',
-                        color: self.config.rainLabel,
+                        color: self.config.rainLabelColor,
                         formatter: function(value, context) {
-                            console.log();
-                            if(value.toFixed(self.config.rainValueOffset) == (0).toFixed(self.config.rainValueOffset)) {
-                                return " ";
-                            }
                             return value.toFixed(self.config.rainValueOffset).replace(".", ",") + self.config.rainValueUnit;
                         }
                     },
