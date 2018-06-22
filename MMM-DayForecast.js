@@ -10,6 +10,8 @@ Module.register('MMM-DayForecast', {
 
     requiresVersion: "2.3.0",
 	defaults: {
+
+        // basics
         APIID: "YOUROPENWEATHERMAPSID",
         apiVersion: "2.5",
         apiBase: "https://api.openweathermap.org/data/",
@@ -17,11 +19,29 @@ Module.register('MMM-DayForecast', {
         locationID: "2643741", //london
         units: "metric",
         lang: "de", 
+
+        // setup
         steps: 5,
         rainOffset: 0,
-        globalFontSize: 14,
+        startOffset: 2000,
+        reloadTime: 1800000, //1800000 = 1000 * 60 * 30 in ms (30min)
 
-        //from basic MM currentweather
+        // design
+        globalFontSize: 14,
+        tickColor: "rgba(255, 255, 255, 1)",
+        animationDuration: 0,
+        tempLabelColor: "rgba(255, 255, 255, 1)",
+        tempChartColor: "rgba(255, 255, 255, 1)",
+        tempValueOffset: 1,
+        tempValueUnit: "°C",
+        tempLabel: "Temperatur",
+        rainLabelColor: "rgba(255, 255, 255, 1)",
+        rainChartColor: "rgba(85, 85, 85, 1)",
+        rainValueOffset: 2,
+        rainValueUnit: "mm",
+        rainLabel: "Regen",
+
+        // from basic MM currentweather
 		iconTable: {
 			"01d": "wi-day-sunny",
 			"02d": "wi-day-cloudy",
@@ -45,6 +65,7 @@ Module.register('MMM-DayForecast', {
     },
 
     firstTimeCalled: false,
+    chart: null,
     
     // Define required scripts.
     getScripts: function() {
@@ -64,8 +85,6 @@ Module.register('MMM-DayForecast', {
     getWeatherForecast: function() {
 
         var self = this;
-
-        self.firstTimeCalled = true;
 
         var url = self.config.apiBase + self.config.apiVersion + "/" + self.config.weatherEndpoint + self.getParams();
         var weatherRequest = new XMLHttpRequest();
@@ -149,110 +168,38 @@ Module.register('MMM-DayForecast', {
 
     renderDiagram: function(data) {
 
-        var ctx = document.getElementById("weatherChart");
-        ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
+        var self = this;
 
-	    Chart.defaults.global.defaultFontSize = this.config.globalFontSize;
+        if(self.firstTimeCalled) {
 
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                datasets: [{
-                    label: 'Temperatur',
-                    barPercentage: 0.3,
-                    data: data.temp,
-                    type: 'line',
-                    borderColor: '#FFF',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2,
-                    datalabels: {
-                        anchor: 'end',
-                        offset: 4,
-                        align: 'end',
-                        color: 'rgba(255, 255, 255, 1)',
-                        formatter: function(value, context) {
-                            return value.toFixed(1).replace(".", ",") + '°C';
-                        }
-                    }
-                  }, {
-                    label: 'Regen',
-                    data: data.rain,
-                    backgroundColor: '#555',
-                    borderWidth: 0,
-                    datalabels: {
-                        anchor: 'start',
-                        offset: 2,
-                        align: 'end',
-                        color: '#FFF',
-                        formatter: function(value, context) {
-                            console.log();
-                            if(value.toFixed(2) == 0.00) {
-                                return " ";
-                            }
-                            return value.toFixed(2).replace(".", ",") + 'mm';
-                        }
-                    },
-                    yAxisID: 'scaledAxis'
-                  }],
-              labels: data.time
-            },
-            options: {
-                animation: {
-                    duration: 0
-                },
-                legend: {
-                    display: false,
-                },
-                layout: {
-                    padding: {
-                        left: 0,
-                        right: 0,
-                        top: 20,
-                        bottom: 0
-                    }
-                },
-                scales: {
-                    xAxes: [{
-                        barPercentage : 1,
-                        gridLines: {
-                            display: false
-                        },
-                        ticks: {
-                            fontColor: '#FFF'
-                        }
-                    }],
-                    yAxes: [{
-                        beginAtZero: true,
-                        display: false,
-                        gridLines: {
-                            display: false
-                        },
-                        ticks: {
-                            fontColor: '#FFF',
-                            beginAtZero: true
-                        } 
-                    }, {
-                        id: 'scaledAxis',
-                        display: false,
-                        ticks: {
-                            beginAtZero: true,
-                            min: 0,
-                            max: data.maxRain
-                        },
-                        barPercentage: 0.1
-                    }]
-                },
-                plugins: {
-                    datalabels: {
-                    }
-                },
-                tooltips: {
-                    enabled: false
+            // chart update
+            self.chart.data.datasets.forEach(function(dataset) {
+
+                switch(dataset.label) {
+
+                    case self.config.tempLabel:
+                    dataset.data = data.temp;
+                    break;
+
+                    case self.config.rainLabel:
+                    dataset.data = data.rain;
+                    break;
                 }
-            }
-        });
+            });
+
+            self.chart.data.labels = data.time;
+            self.chart.update();
+        }
+        else {   
+            
+            // chart init
+            self.firstTimeCalled = true;
+            var ctx = document.getElementById("weatherChart");
+            Chart.defaults.global.defaultFontSize = self.config.globalFontSize;
+            self.chart = new Chart(ctx, self.getChartConfig(data));
+        }
     
-        this.renderIcons(data.icon)
+        this.renderIcons(data.icon);
     },
     
     renderIcons:  function(icons) {
@@ -292,8 +239,117 @@ Module.register('MMM-DayForecast', {
         diagramWrapper.appendChild(icons);
         wrapper.appendChild(diagramWrapper);
 
-	    setTimeout(function() { self.getWeatherForecast(); }, 2000);
+        setTimeout(function() {
+            self.getWeatherForecast(); 
+
+            setInterval(function() {
+                self.getWeatherForecast(); 
+
+            }, self.config.reloadTime)
+        }, self.config.startOffset);
 
         return wrapper;
+    },
+
+    getChartConfig: function(data) {
+        var self = this;
+
+        return {
+            type: 'bar',
+            data: {
+                datasets: [{
+                    label: self.config.tempLabel,
+                    barPercentage: 0.3,
+                    data: data.temp,
+                    type: 'line',
+                    borderColor: self.config.tempChartColor,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    datalabels: {
+                        anchor: 'end',
+                        offset: 4,
+                        align: 'end',
+                        color: self.config.tempLabelColor,
+                        formatter: function(value, context) {
+                            return value.toFixed(self.config.rainValueOffset).replace(".", ",") + self.config.tempValueUnit;
+                        }
+                    }
+                  }, {
+                    label: self.config.rainLa,
+                    data: data.rain,
+                    backgroundColor: self.config.rainChartColor,
+                    borderWidth: 0,
+                    datalabels: {
+                        anchor: 'start',
+                        offset: 2,
+                        align: 'end',
+                        color: self.config.rainLabel,
+                        formatter: function(value, context) {
+                            console.log();
+                            if(value.toFixed(self.config.rainValueOffset) == (0).toFixed(self.config.rainValueOffset)) {
+                                return " ";
+                            }
+                            return value.toFixed(self.config.rainValueOffset).replace(".", ",") + self.config.rainValueUnit;
+                        }
+                    },
+                    yAxisID: 'scaledAxis'
+                  }],
+              labels: data.time
+            },
+            options: {
+                animation: {
+                    duration: self.config.animationDuration
+                },
+                legend: {
+                    display: false,
+                },
+                layout: {
+                    padding: {
+                        left: 0,
+                        right: 0,
+                        top: 20,
+                        bottom: 0
+                    }
+                },
+                scales: {
+                    xAxes: [{
+                        barPercentage : 1,
+                        gridLines: {
+                            display: false
+                        },
+                        ticks: {
+                            fontColor: self.config.tickColor
+                        }
+                    }],
+                    yAxes: [{
+                        beginAtZero: true,
+                        display: false,
+                        gridLines: {
+                            display: false
+                        },
+                        ticks: {
+                            fontColor: self.config.tickColor,
+                            beginAtZero: true
+                        } 
+                    }, {
+                        id: 'scaledAxis',
+                        display: false,
+                        ticks: {
+                            beginAtZero: true,
+                            min: 0,
+                            max: data.maxRain
+                        },
+                        barPercentage: 0.1
+                    }]
+                },
+                plugins: {
+                    datalabels: {
+                    }
+                },
+                tooltips: {
+                    enabled: false
+                }
+            }
+        }
     }
 });
