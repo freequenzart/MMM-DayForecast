@@ -12,7 +12,7 @@ modules: [
 		module: 'MMM-DayForecast',
 		config: {
             APIID: 'bcdefgh123456789',// API Key from open weather maps
-            locationID: '2643741',//http://openweathermap.org/help/city_list.txt
+            locationID: '2643741',//http://bulk.openweathermap.org/sample/city.list.json.gz
             steps: 5, // how many steps of 3h you will see?
             lang: "de"//de en, nl, ru, etc ...
             rainShowValue: true, //to show mm on bars
