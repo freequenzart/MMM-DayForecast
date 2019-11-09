@@ -191,7 +191,7 @@ Module.register('MMM-DayForecast', {
                     break;
                 }
             });
-
+            self.chart.options.scales["scaledAxis"].ticks.max = data.maxRain;
             self.chart.data.labels = data.time;
             self.chart.update();
         }
@@ -243,8 +243,10 @@ Module.register('MMM-DayForecast', {
 
         var diagramWrapper = document.createElement("div");
         diagramWrapper.className = "weather-forcast";
+
         var diagram = document.createElement("canvas");
         diagram.setAttribute("id", "weatherChart");
+
         var icons = document.createElement("div");
         icons.setAttribute("id", "weatherForcastIcons");
 
